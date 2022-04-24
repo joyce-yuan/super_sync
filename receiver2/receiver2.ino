@@ -123,6 +123,10 @@ void loop() {
       resetGame();
       state = 0;
     }
+
+    //go back to listening if no conditions met
+    currentColor = generateColor();
+    state = 1;
   }
 
   //game end
@@ -137,7 +141,10 @@ void loop() {
 
 int generateColor() {
   srand(time(0));
-  return rand(4);
+  int temp = rand(4);
+  //insert LED logic for tower
+  Serial.printf("tower lights up %s", colorArray[temp]);
+  return temp;
 }
 
 void updateScore() {
@@ -150,9 +157,12 @@ void updateScore() {
     team2 = team2 + 1;
     // tower LED logic here
   }
+
+  Serial.printf("updated score team 1: %d, team 2: %d", team1, team2);
 }
 
 void resetGame() {
+  Serial.println("resetting game");
   team1 = 0;
   team2 = 0;
   //reset all LEDs
