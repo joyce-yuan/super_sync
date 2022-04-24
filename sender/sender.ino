@@ -3,9 +3,6 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
-//create an RF24 object
-RF24 radio(9, 8);  // CE, CSN
-
 // constants that are sender specific:
 const int senderID = 0;
 const int buttonPin = 2;     // the number of the pushbutton pin
@@ -16,6 +13,7 @@ const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
 // variables & state
 int state = 0;
+int buttonState;
 
 
 //address through which two modules communicate.
