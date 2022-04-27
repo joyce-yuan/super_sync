@@ -3,6 +3,9 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
+//create an RF24 object
+RF24 radio(9, 8);  // CE, CSN
+
 // constants that are sender specific:
 const int senderID = 0;
 const int buttonPin = 2;     // the number of the pushbutton pin
@@ -21,7 +24,10 @@ const byte address[6] = "00001";
 
 void setup() {
   Serial.begin(115200);
-  Serial.printf("Setting up sender %d with color $s", senderID, colorArray[color]);
+  char buff[100];
+  sprintf(buff, "Setting up sender %d with color %s", senderID, colorArray[color]);
+  Serial.println(buff);
+  // Serial.printf("Setting up sender %d with color $s", senderID, colorArray[color]);
   radio.begin();
   
   //set the address
@@ -51,15 +57,19 @@ void loop() {
   // normal state
   if (state == 0) {
     if (buttonState == HIGH) {
+      Serial.println("Button pressed");
       state = 1;
     }
   } 
   // send state
   else if (state == 1) {
-    const char text[] = strcat(itao(senderID), itao(color));
+    char text[10];
+    sprintf(text, "%d%d", senderID, color);
     radio.write(&text, sizeof(text));
+    char buff[50];
+    sprintf(buff, "sender %d sent %s", senderID, text);
+    Serial.println(buff);
     state = 0;
-    Serial.printf("sender %d sent $s", senderID, text);
 
   }
 }
