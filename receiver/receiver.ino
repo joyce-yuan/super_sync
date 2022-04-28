@@ -26,6 +26,7 @@ void setup(){
   
   //Set module as receiver
   radio.startListening();
+  Serial.print("Started Listening");
 }
 
 void loop(){

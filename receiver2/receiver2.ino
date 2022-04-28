@@ -4,6 +4,8 @@
 #include <RF24.h>
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
+#include <string.h>
+#include <time.h>
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
@@ -12,6 +14,7 @@ SoftwareSerial mySoftwareSerial(10, 11);                  // RX, TX
 DFRobotDFPlayerMini myDFPlayer;                           // Create myDFPlayer of the DFPlayer Class
 
 // constants for receiver:
+char print_statement[100];
 const uint8_t PIN = 6;
 char text[32] = {0};
 const int buttonPin = 2;     // the number of the pushbutton pin
@@ -45,7 +48,8 @@ void setup() {
   pinMode(PIN, OUTPUT);
   while (!Serial);
     Serial.begin(115200);
-  Serial.printf("Setting up receiver tower");
+  sprintf(print_statement, "Setting up receiver tower");
+  Serial.println(print_statement);
   radio.begin();
   
   //set the address
@@ -60,7 +64,7 @@ void setup() {
   pinMode(buttonPin, INPUT);
 
   // gamestate and setup
-  state = 0;
+  state = 1;
   currentColor = generateColor();
   team1 = 0;
   team2 = 0;
@@ -91,14 +95,19 @@ void loop() {
 
   // listening for input
   else if (state == 1) {
-    
+
     //Read the data if available in buffer
     if (radio.available()) {
-      strcpy(text, "");
+      //Serial.println("reading");
+      strcpy("", text);
       radio.read(&text, sizeof(text));
       Serial.println(text);
-      senderTeam = (stoi(text[0]) < 4) ? 1 : 2;
-      senderColor = stoi(text[1]) % 4;
+      senderTeam = (atoi(text[0]) < 4) ? 1 : 2;
+      senderColor = atoi(text[1]) % 4;
+      Serial.print("Team: ");
+      Serial.println(senderTeam);
+      Serial.print("Color: ");
+      Serial.println(senderColor);
 
       //color check
       if (senderColor == currentColor){
@@ -107,6 +116,7 @@ void loop() {
     }
 
     if (buttonState == HIGH){
+      Serial.print("ending");
       resetGame();
       state = 0;
     }
@@ -141,9 +151,10 @@ void loop() {
 
 int generateColor() {
   srand(time(0));
-  int temp = rand(4);
+  int temp = rand()%4;
   //insert LED logic for tower
-  Serial.printf("tower lights up %s", colorArray[temp]);
+  sprintf(print_statement, "tower lights up %s", colorArray[0]);
+  Serial.println(print_statement);
   return temp;
 }
 
@@ -157,8 +168,8 @@ void updateScore() {
     team2 = team2 + 1;
     // tower LED logic here
   }
-
-  Serial.printf("updated score team 1: %d, team 2: %d", team1, team2);
+  sprintf(print_statement, "updated score team 1: %d, team 2: %d", team1, team2);
+  Serial.println(print_statement);
 }
 
 void resetGame() {
