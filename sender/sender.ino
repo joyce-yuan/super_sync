@@ -8,7 +8,8 @@ RF24 radio(9, 8);  // CE, CSN
 
 // constants that are sender specific:
 const int senderID = 0;
-const int buttonPin = 2;     // the number of the pushbutton pin
+const int buttonPin = 3;     // the number of the pushbutton pin
+const int reedPin = 2;
 const int ledPin =  13;      // the number of the LED pin
 // {RED: 0, GREEN: 1, BLUE: 2, YELLOW: 3}
 const int color = 0; 
@@ -16,7 +17,8 @@ const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
 // variables & state
 int state = 0;
-int buttonState;
+bool buttonState;
+bool switchState = HIGH;
 
 
 //address through which two modules communicate.
@@ -41,8 +43,13 @@ void setup() {
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);
 
+  pinMode(reedPin, INPUT);
+
   // gamestate
   state = 0;
+
+  buttonState = LOW;
+  switchState = HIGH;
 
 }
 
@@ -51,8 +58,14 @@ void loop() {
   // turn LED on:
   digitalWrite(ledPin, HIGH);
   
+  switchState = digitalRead(reedPin);
+  
   // read the state of the reed switch:
   buttonState = digitalRead(buttonPin);
+
+  char buff[50];
+  sprintf(buff, "switchState %d buttonState %d", switchState, buttonState);
+  Serial.println(buff);
   
   // normal state
   if (state == 0) {
@@ -60,6 +73,10 @@ void loop() {
       Serial.println("Button pressed");
       state = 1;
     }
+    if (switchState == HIGH){
+      Serial.println("Reed Switch on");
+    }
+    delay(500);
   } 
   // send state
   else if (state == 1) {
@@ -70,6 +87,7 @@ void loop() {
     sprintf(buff, "sender %d sent %s", senderID, text);
     Serial.println(buff);
     state = 0;
+    delay(100);
 
   }
 }
