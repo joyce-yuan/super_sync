@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include <TFT_eSPI.h>
+// #include <TFT_eSPI.h>
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
@@ -10,18 +10,18 @@ RF24 radio(9, 8);  // CE, CSN
 // constants that are sender specific:
 const int senderID = 0;
 
-const int buttonPin = 3;     // the number of the pushbutton pin
-const int reedPin = 2;
+const int buttonPin = 2;     // the number of the pushbutton pin
+const int reedPin = 3;
 const int ledPin =  13;      // the number of the LED pin
 
-// {RED: 0, GREEN: 1, BLUE: 2, YELLOW: 3}
+// {RED: 0, GREEN: 1, BLUE: , YELLOW: 3}
 const int color = 0; 
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
 // variables & state
 int state = 0;
-bool buttonState;
-bool switchState = HIGH;
+int buttonState;
+int switchState;
 
 
 //address through which two modules communicate.
@@ -150,15 +150,14 @@ void setup() {
   // initialize the LED pin as an output:
  // pinMode(ledPin, OUTPUT);
   // initialize the pushbutton pin as an input:
-  pinMode(2, INPUT_PULLUP);
+  pinMode(buttonPin, INPUT_PULLUP);
 
-  pinMode(reedPin, INPUT);
+  pinMode(reedPin, INPUT_PULLUP);
 
   // gamestate
   state = 0;
 
-  buttonState = LOW;
-  switchState = HIGH;
+//  switchState = HIGH;
 
 }
 
@@ -169,13 +168,13 @@ void loop() {
 
   int buttonState = button.update();
   
-  // switchState = digitalRead(reedPin);
+   switchState = digitalRead(reedPin);
 
-  char buff[50];
-  sprintf(buff, "switchState %d buttonState %d", switchState, buttonState);
-  Serial.println(buff);
+//  char buff[50];
+//  sprintf(buff, "switchState %d buttonState %d", switchState, buttonState);
+//  Serial.println(buff);
   
-  int buttonState = button.update();
+  buttonState = button.update();
 
   // normal state
   if (state == 0) {
@@ -183,10 +182,9 @@ void loop() {
       Serial.println("Button pressed");
       state = 1;
     }
-    if (switchState == HIGH){
+    if (switchState == LOW){
       Serial.println("Reed Switch on");
     }
-    delay(500);
   } 
   // send state
   else if (state == 1) {

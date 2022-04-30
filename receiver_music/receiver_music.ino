@@ -2,16 +2,11 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include "SoftwareSerial.h"
-#include "DFRobotDFPlayerMini.h"
 #include <string.h>
 #include <time.h>
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
-
-SoftwareSerial mySoftwareSerial(10, 11);                  // RX, TX
-DFRobotDFPlayerMini myDFPlayer;                           // Create myDFPlayer of the DFPlayer Class
 
 // constants for receiver:
 char print_statement[100];
@@ -43,6 +38,45 @@ int senderTeam;
 
 //address through which two modules communicate.
 const byte address[6] = "00001";
+
+////////////////////////////////////////////
+MUSIC STUFF
+// note durations: 8 = quarter note, 4 = 8th note, etc.
+
+int scoreMusic[] = {
+NOTE_C4, NOTE_E4, NOTE_D4, NOTE_F4, NOTE_C4, END,
+};
+
+int scoreDurations[] = {
+4,4,4,4,12,4
+};
+
+int gameStartMusic[] = {
+NOTE_D4, NOTE_G4, NOTE_FS4, NOTE_A4,
+NOTE_G4, NOTE_C5, NOTE_AS4, NOTE_A4,                   
+NOTE_FS4, NOTE_G4, NOTE_A4, NOTE_FS4, NOTE_DS4, NOTE_D4,
+NOTE_C4, NOTE_D4,END,
+};
+
+int gameStartDurations[] = {
+8,4,8,4,
+4,4,4,12,
+4,4,4,4,4,4,
+4,16,4,
+};
+
+int gameOverMusic[] = {
+NOTE_FS4, NOTE_G4, NOTE_A4, NOTE_FS4, NOTE_DS4, NOTE_D4,
+NOTE_C4, NOTE_D4,END,
+};
+
+int gameOverDurations[] = {
+4,4,4,4,4,4,
+4,16,4,
+};
+
+int speed=90;  //higher value, slower notes
+////////////////////////////////////////////////////
 
 void setup() {
   pinMode(PIN, OUTPUT);
@@ -90,6 +124,7 @@ void loop() {
       delay(500);
       state = 1;
       //play starting game music
+      playmusic(gameStartMusic, gameStartDurations);
     }
   }
 
@@ -111,6 +146,7 @@ void loop() {
 
       //color check
       if (senderColor == currentColor){
+        playmusic(scoreMusic, scoreDurations);
         state = 2;
       }
     }
@@ -125,9 +161,10 @@ void loop() {
   //score update
   else if (state == 2) {
     updateScore();
-    if (team1 == 7 || team2 == 7){
+    if (team1 == 5 || team2 == 5){
       Serial.println("someone won");
       state = 3;
+      playmusic(gameOverMusic, gameOverDurations);
       //maybe play some music
     } else {
       state = 1;
@@ -179,6 +216,19 @@ void resetGame() {
   team1 = 0;
   team2 = 0;
   //reset all LEDs
-  //maybe play some music
+  playmusic(gameOverMusic, gameOverDurations);
   delay(500);
+}
+
+void playmusic(int * notes, int * durations){
+for (int thisNote = 0; notes[thisNote]!=-1; thisNote++) {
+
+int noteDuration = speed*durations[thisNote];
+tone(3, notes[thisNote],noteDuration*.95);
+Serial.println(notes[thisNote]);
+
+delay(noteDuration);
+
+noTone(3);
+}
 }
