@@ -8,14 +8,14 @@
 RF24 radio(9, 8);  // CE, CSN
 
 // constants that are sender specific:
-const int senderID = 0;
+const int senderID = 5;
 
 const int buttonPin = 2;     // the number of the pushbutton pin
 const int reedPin = 3;
 const int ledPin =  13;      // the number of the LED pin
 
 // {RED: 0, GREEN: 1, BLUE: , YELLOW: 3}
-const int color = 0; 
+const int color = 1; 
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
 // variables & state
