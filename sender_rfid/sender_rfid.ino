@@ -40,6 +40,7 @@ const byte address[6] = "00001";
 
 void setup() {
   Serial.begin(115200);
+  delay(1500);
   char buff[100];
   sprintf(buff, "Setting up sender %d with color %s", senderID, colorArray[color]);
   Serial.println(buff);
@@ -137,5 +138,3 @@ status = mfrc522.MIFARE_Read(blockNumber, arrayAddress, &buffersize);//&buffersi
   }
   Serial.println("block was read");
 }
-
-

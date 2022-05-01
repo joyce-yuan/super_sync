@@ -4,6 +4,8 @@
 #include <RF24.h>
 #include <string.h>
 #include <time.h>
+#include"pitches.h"
+
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
@@ -40,7 +42,7 @@ int senderTeam;
 const byte address[6] = "00001";
 
 ////////////////////////////////////////////
-MUSIC STUFF
+// MUSIC STUFF
 // note durations: 8 = quarter note, 4 = 8th note, etc.
 
 int scoreMusic[] = {
@@ -102,6 +104,7 @@ void setup() {
   currentColor = generateColor();
   team1 = 0;
   team2 = 0;
+  playmusic(gameStartMusic, gameStartDurations);
 
 }
 
