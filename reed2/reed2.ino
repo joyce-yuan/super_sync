@@ -3,30 +3,19 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 // #include <TFT_eSPI.h>
-#include <MFRC522.h>  //include the RFID reader library
-
-#define RFID_SS_PIN 4  //slave select pin
-#define RFID_RST_PIN 3  //reset pin
-// create an MFRC522 object
-MFRC522 mfrc522(RFID_SS_PIN, RFID_RST_PIN);  // instatiate a MFRC522 reader object.
-MFRC522::MIFARE_Key key;          //create a MIFARE_Key struct named 'key', which will hold the card information
-int block=60;
-byte readbackblock[18];
-char team_and_color[15];
-
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
 
 // constants that are sender specific:
-const int senderID = 0;
+const int senderID = 2;
 
 const int buttonPin = 2;     // the number of the pushbutton pin
 const int reedPin = 3;
 const int ledPin =  13;      // the number of the LED pin
 
 // {RED: 0, GREEN: 1, BLUE: , YELLOW: 3}
-const int color = 0; 
+const int color = 2; 
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
 // variables & state
