@@ -7,6 +7,7 @@
 #include"pitches.h"
 
 
+
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
 
@@ -44,7 +45,7 @@ const byte address[6] = "00001";
 ////////////////////////////////////////////
 // MUSIC STUFF
 // note durations: 8 = quarter note, 4 = 8th note, etc.
-
+/* ARCHIVED May 4
 int scoreMusic[] = {
 NOTE_C4, NOTE_E4, NOTE_D4, NOTE_F4, NOTE_C4, END,
 };
@@ -53,6 +54,7 @@ int scoreDurations[] = {
 4,4,4,4,12,4
 };
 
+/* ARCHIVED May 4
 int gameStartMusic[] = {
 NOTE_D4, NOTE_G4, NOTE_FS4, NOTE_A4,
 NOTE_G4, NOTE_C5, NOTE_AS4, NOTE_A4,                   
@@ -76,6 +78,39 @@ int gameOverDurations[] = {
 4,4,4,4,4,4,
 4,16,4,
 };
+*/
+int scoreMusic[] = {
+NOTE_F4, NOTE_C5, 
+NOTE_A4, NOTE_C5, NOTE_AS4, NOTE_D5, NOTE_F5, END
+};
+
+int scoreDurations[] = {
+8, 8,
+4,4,4,4, 8, END
+};
+int gameStartMusic[] = {
+  NOTE_C4, NOTE_F4, NOTE_A4, NOTE_A4,
+  NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_C4,
+  NOTE_F4, NOTE_A4, NOTE_C5, 
+  NOTE_AS4, NOTE_G4, NOTE_C5, END
+};
+
+int gameStartDurations[] = {
+  2, 8, 6, 2,
+  2, 2, 8, 4,
+  8, 6, 2,
+  2, 2, 12, 2,
+};
+
+int gameOverMusic[] = {
+  NOTE_F4, NOTE_C5, NOTE_D5, NOTE_F5, NOTE_E5, NOTE_C5,
+  NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_F4, END
+};
+
+int gameOverDurations[] = {
+  8, 8, 4, 4, 4, 4,
+  8, 4, 4, 16, 4
+};
 
 int speed=90;  //higher value, slower notes
 ////////////////////////////////////////////////////
@@ -84,6 +119,7 @@ void setup() {
   pinMode(PIN, OUTPUT);
   while (!Serial);
     Serial.begin(115200);
+  delay(1500);
   sprintf(print_statement, "Setting up receiver tower");
   Serial.println(print_statement);
   radio.begin();
@@ -93,28 +129,31 @@ void setup() {
   
   //Set module as receiver
   radio.startListening();
+  radio.setPALevel(RF24_PA_MIN);
 
   // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
+  // pinMode(ledPin, OUTPUT);
   // initialize the pushbutton pin as an input:
-  pinMode(buttonPin, INPUT);
+  // pinMode(buttonPin, INPUT);
 
   // gamestate and setup
   state = 1;
   currentColor = generateColor();
   team1 = 0;
   team2 = 0;
-  playmusic(gameStartMusic, gameStartDurations);
+  //playmusic(gameStartMusic, gameStartDurations);
+  // playmusic(scoreMusic, scoreDurations);
+  // playmusic(gameOverMusic, gameOverDurations);
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   // turn LED on:
-  digitalWrite(ledPin, HIGH);
+  // digitalWrite(ledPin, HIGH);
   
   // read the state of the reed switch:
-  buttonState = digitalRead(buttonPin);
+  // buttonState = digitalRead(buttonPin);
 
   // state = 0, game setup
   // state = 1, listening for input
@@ -133,15 +172,20 @@ void loop() {
 
   // listening for input
   else if (state == 1) {
-
+    // Serial.println("state 1");
     //Read the data if available in buffer
     if (radio.available()) {
-      //Serial.println("reading");
+      Serial.println("reading");
       strcpy("", text);
       radio.read(&text, sizeof(text));
       Serial.println(text);
-      senderTeam = (atoi(text[0]) < 4) ? 1 : 2;
-      senderColor = atoi(text[1]) % 4;
+      // senderTeam = (atoi(text[0]) < 4) ? 1 : 2;
+      
+      senderColor = text[0] - '0';
+      senderTeam = text[1] - '0';
+      senderTeam = (senderTeam < 4) ? 1: 2;
+      
+      
       Serial.print("Team: ");
       Serial.println(senderTeam);
       Serial.print("Color: ");
