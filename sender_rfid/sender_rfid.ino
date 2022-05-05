@@ -21,12 +21,12 @@ char wristband_team_and_color[] = "red-1"; // this should be changed for each se
 RF24 radio(9, 8);  // CE, CSN
 
 // constants that are sender specific:
-const int senderID = 0;
+const int senderID = 1;
 
-const int reedPin = 3;
-const int ledPin =  13;      // the number of the LED pin
+// const int reedPin = 3;
+// const int ledPin =  13;      // the number of the LED pin
 
-// {RED: 0, GREEN: 1, BLUE: , YELLOW: 3}
+// {RED: 0, GREEN: 1, BLUE: 2, YELLOW: 3}
 const int color = 0; 
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 
