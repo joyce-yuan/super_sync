@@ -4,7 +4,9 @@
 #include <RF24.h>
 #include <string.h>
 #include <time.h>
+#include <FastLED.h>
 #include"pitches.h"
+
 
 
 
@@ -22,6 +24,16 @@ const int color = 0;
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 // senders 0-3 = team 1
 // senders 4-7 = team 2
+
+// variables for lights
+const uint8_t NUM_LEDS = 192;
+const uint8_t DATA_PIN_1 = 6;
+const uint8_t DATA_PIN_2 = 5;
+const uint8_t leds_per_floor = 25;
+CRGB leds_1[NUM_LEDS]; // led array for team 1
+CRGB leds_2[NUM_LEDS]; // led array for team 2
+int levels[] ={0, 10, 20, 30, 40}; // starting led of each floor in tower
+
 
 // variables & state
 int state = 0;
@@ -80,13 +92,13 @@ int gameOverDurations[] = {
 };
 */
 int scoreMusic[] = {
-NOTE_F4, NOTE_C5, 
-NOTE_A4, NOTE_C5, NOTE_AS4, NOTE_D5, NOTE_F5, END
+  NOTE_F4, NOTE_C5, 
+  NOTE_A4, NOTE_C5, NOTE_AS4, NOTE_D5, NOTE_F5, END
 };
 
 int scoreDurations[] = {
-8, 8,
-4,4,4,4, 8, END
+  8, 8,
+  4,4,4,4, 8, END
 };
 int gameStartMusic[] = {
   NOTE_C4, NOTE_F4, NOTE_A4, NOTE_A4,
@@ -122,6 +134,10 @@ void setup() {
   delay(1500);
   sprintf(print_statement, "Setting up receiver tower");
   Serial.println(print_statement);
+	FastLED.addLeds<WS2812,DATA_PIN_1,RGB>(leds_1,NUM_LEDS);
+  FastLED.addLeds<WS2812,DATA_PIN_2,RGB>(leds_2,NUM_LEDS);
+	FastLED.setBrightness(80);
+  all_off();  
   radio.begin();
   
   //set the address
@@ -197,6 +213,8 @@ void loop() {
 
       //color check
       if (senderColor == currentColor){
+        all_off();
+        correct_color(senderTeam, senderColor);
         playmusic(scoreMusic, scoreDurations);
         state = 2;
       }
@@ -211,11 +229,16 @@ void loop() {
 
   //score update
   else if (state == 2) {
+    all_off();
     updateScore();
+    light_by_score(team1, team2, leds_per_floor);
+    delay(3000);
     if (team1 == 5 || team2 == 5){
       Serial.println("someone won");
       state = 3;
       playmusic(gameOverMusic, gameOverDurations);
+      winning_sequence((team1 == 5)? 1: 2);
+      all_off();
       //maybe play some music
     } else {
       state = 1;
@@ -225,12 +248,14 @@ void loop() {
     if (buttonState == HIGH){
       resetGame();
       state = 0;
+      all_off();
     }
   }
 
   //game end
   else if (state == 3) {
     if (buttonState == HIGH){
+      all_off();
       resetGame();
       state = 0;
     }
@@ -243,6 +268,7 @@ int generateColor() {
   int temp = rand()%4;
   //insert LED logic for tower
   sprintf(print_statement, "tower lights up %s", colorArray[0]);
+  light_by_color(temp);
   Serial.println(print_statement);
   return 0;
   //return temp;
@@ -272,14 +298,134 @@ void resetGame() {
 }
 
 void playmusic(int * notes, int * durations){
-for (int thisNote = 0; notes[thisNote]!=-1; thisNote++) {
-
-int noteDuration = speed*durations[thisNote];
-tone(3, notes[thisNote],noteDuration*.95);
-Serial.println(notes[thisNote]);
-
-delay(noteDuration);
-
-noTone(3);
+  for (int thisNote = 0; notes[thisNote]!=-1; thisNote++) {
+    int noteDuration = speed*durations[thisNote];
+    tone(3, notes[thisNote],noteDuration*.95);
+    Serial.println(notes[thisNote]);
+    delay(noteDuration);
+    noTone(3);
+  }
 }
+
+void light_by_score(int score_1, int score_2, int per_floor){
+  /* Lights up the tower one floor at a time to show a visual representation of a team's score
+      Parameters:
+        score_1 (int): the score of team 1
+        score_2 (int): the score of team 2
+        per_floor (int): the number of leds per floor in the tower, we don't light in between floors
+      Return:
+        nothing
+  */
+
+  for (int i=0;i<5;i++){
+    for(int j=levels[i];j<levels[i] + per_floor; j++){
+      // light level for team 1 if score high enough
+      if (score_1 > i){
+        leds_1[j] = CHSV(0, 0, 255);
+      }
+      // light level for team 2 if score high enough
+      if (score_2 > i){
+        leds_2[j] = CHSV(0, 0, 255);
+      }
+    }
+    FastLED.show();
+    delay(500); // lights floors one at a time, for visual appeal?
+  }
+}
+
+void light_by_color(int color){
+  int hue;
+  switch (color){
+    case 0: // tower is red
+      hue = 96;
+      break;
+    case 1: // tower is green
+      hue = 0;
+      break;
+    case 2: // tower is blue
+      hue = 160;
+      break;
+    case 3: // tower is yellow
+      hue = 80;
+      break;
+    default:
+      hue = 192; // purple idk
+      break;
+  }
+
+  for (int i = 0; i<NUM_LEDS; i++){
+    leds_1[i] = CHSV(hue, 255, 255);
+    leds_2[i] = CHSV(hue, 255, 255);
+  }
+  FastLED.show();
+}
+
+void correct_color(int team, int color){
+  int hue;
+  switch (color){
+    case 0: // tower is red
+      hue = 96;
+      break;
+    case 1: // tower is green
+      hue = 0;
+      break;
+    case 2: // tower is blue
+      hue = 160;
+      break;
+    case 3: // tower is yellow
+      hue = 80;
+      break;
+    default:
+      hue = 192; // purple idk
+      break;
+  }
+
+  if (team == 1){
+    for (int x = 0; x < 10; x++){
+      for (int i = 0; i < NUM_LEDS; i++){
+        leds_1[i] = CHSV(hue, 255, 255);
+      }
+      FastLED.show();
+      delay(100);
+      all_off();
+      delay(100);
+    }
+  }
+  else if (team == 2){
+    for (int x = 0; x < 10; x++){
+      for (int i = 0; i < NUM_LEDS; i++){
+        leds_2[i] = CHSV(hue, 255, 255);
+      }
+      FastLED.show();
+      delay(100);
+      all_off();
+      delay(100);
+    }
+  }
+
+}
+
+void all_off(){
+  for (int i = 0; i < NUM_LEDS; i++){
+    leds_1[i] = CRGB::Black;
+    leds_2[i] = CRGB::Black;
+  }
+  FastLED.show();
+}
+
+void winning_sequence(int team){
+  for (int x=0;x<600;x++){
+    Serial.println(x);
+    //uint8_t thisHue = beatsin8(30, 0, 255);
+    uint8_t thisHue = beat8(100, 255);
+    if (team == 1){
+      fill_rainbow(leds_1, NUM_LEDS, thisHue, 10);
+    }
+    else{
+      fill_rainbow(leds_2, NUM_LEDS, thisHue, 10);
+    }
+    
+    FastLED.show();
+  }
+
 }
