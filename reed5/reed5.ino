@@ -135,6 +135,7 @@ class Button {
 Button button(2);
 void setup() {
   Serial.begin(115200);
+  delay(1500);
   char buff[100];
   sprintf(buff, "Setting up sender %d with color %s", senderID, colorArray[color]);
   Serial.println(buff);

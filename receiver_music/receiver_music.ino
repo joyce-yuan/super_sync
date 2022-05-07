@@ -112,7 +112,7 @@ int gameOverDurations[] = {
   8, 4, 4, 16, 4
 };
 
-int speed=90;  //higher value, slower notes
+int speed=70;  //higher value, slower notes
 ////////////////////////////////////////////////////
 
 void setup() {
@@ -141,7 +141,7 @@ void setup() {
   currentColor = generateColor();
   team1 = 0;
   team2 = 0;
-  //playmusic(gameStartMusic, gameStartDurations);
+  playmusic(gameStartMusic, gameStartDurations);
   // playmusic(scoreMusic, scoreDurations);
   // playmusic(gameOverMusic, gameOverDurations);
 
@@ -179,11 +179,15 @@ void loop() {
       strcpy("", text);
       radio.read(&text, sizeof(text));
       Serial.println(text);
-      // senderTeam = (atoi(text[0]) < 4) ? 1 : 2;
-      
-      senderColor = text[0] - '0';
-      senderTeam = text[1] - '0';
-      senderTeam = (senderTeam < 4) ? 1: 2;
+
+      // numbering system for 00, 01, 02, 03, 10, 11, 12, 13
+       senderColor = text[1] - '0';
+       senderTeam = text[0] - '0';
+       senderTeam = (senderTeam < 4) ? 1: 2;
+
+      // numbering system for 0 - 7, untested
+//      senderColor = atoi(text) % 4;
+//      senderTeam = (atoi(text) < 4) ? 1: 2;
       
       
       Serial.print("Team: ");

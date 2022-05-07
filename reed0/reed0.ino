@@ -135,6 +135,7 @@ class Button {
 Button button(2);
 void setup() {
   Serial.begin(115200);
+  delay(1500);
   char buff[100];
   sprintf(buff, "Setting up sender %d with color %s", senderID, colorArray[color]);
   Serial.println(buff);
@@ -154,6 +155,8 @@ void setup() {
 
   pinMode(reedPin, INPUT_PULLUP);
 
+  Serial.println(switchState);
+
   // gamestate
   state = 0;
 
@@ -169,6 +172,10 @@ void loop() {
   int buttonState = button.update();
   
    switchState = digitalRead(reedPin);
+   char buff[50];
+   sprintf(buff, "reed switch state %d", switchState);
+   Serial.println(buff);
+   
 
 //  char buff[50];
 //  sprintf(buff, "switchState %d buttonState %d", switchState, buttonState);
@@ -178,10 +185,10 @@ void loop() {
 
   // normal state
   if (state == 0) {
-    if (buttonState == 1 || buttonState == 2) {
-      Serial.println("Button pressed");
-      state = 1;
-    }
+//    if (buttonState == 1 || buttonState == 2) {
+//      Serial.println("Button pressed");
+//      state = 1;
+//    }
     if (switchState == LOW){
       Serial.println("Reed Switch on");
       state = 1;
@@ -196,7 +203,8 @@ void loop() {
     sprintf(buff, "sender %d sent %s", senderID, text);
     Serial.println(buff);
     state = 0;
-    delay(500);
+    delay(1000);
 
   }
+  delay(500);
 }
