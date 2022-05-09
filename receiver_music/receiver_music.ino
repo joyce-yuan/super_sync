@@ -8,17 +8,18 @@
 #include"pitches.h"
 
 
-
+const int fake_sequence[] = {0, 2, 2, 0};
+int sequence_counter;
 
 //create an RF24 object
 RF24 radio(9, 8);  // CE, CSN
 
 // constants for receiver:
 char print_statement[100];
-const uint8_t PIN = 6;
+// const uint8_t PIN = 6;
 char text[32] = {0};
-const int buttonPin = 2;     // the number of the pushbutton pin
-const int ledPin =  13;      // the number of the LED pin
+// const int buttonPin = 2;     // the number of the pushbutton pin
+// const int ledPin =  13;      // the number of the LED pin
 // {RED: 0, GREEN: 1, BLUE: 2, YELLOW: 3}
 const int color = 0; 
 const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
@@ -26,13 +27,18 @@ const char* colorArray[] = {"RED", "GREEN", "BLUE", "YELLOW"};
 // senders 4-7 = team 2
 
 // variables for lights
-const uint8_t NUM_LEDS = 192;
-const uint8_t DATA_PIN_1 = 6;
-const uint8_t DATA_PIN_2 = 5;
-const uint8_t leds_per_floor = 25;
+#define NUM_LEDS 192
+#define DATA_PIN_1 5
+#define DATA_PIN_2 6
+#define leds_per_floor 33
+
+// const uint8_t NUM_LEDS = 192;
+// const uint8_t DATA_PIN_1 = 6;
+// const uint8_t DATA_PIN_2 = 5;
+// const uint8_t leds_per_floor = 25;
 CRGB leds_1[NUM_LEDS]; // led array for team 1
 CRGB leds_2[NUM_LEDS]; // led array for team 2
-int levels[] ={0, 10, 20, 30, 40}; // starting led of each floor in tower
+int levels[] ={5, 37, 69, 101, 135}; // starting led of each floor in tower
 
 
 // variables & state
@@ -42,7 +48,7 @@ int state = 0;
 // state = 2, score update
 // state = 3, game over
 
-int buttonState;
+//int buttonState;
 
 int currentColor;
 int team1;
@@ -92,12 +98,12 @@ int gameOverDurations[] = {
 };
 */
 int scoreMusic[] = {
-  NOTE_F4, NOTE_C5, 
+  // NOTE_F4, NOTE_C5, 
   NOTE_A4, NOTE_C5, NOTE_AS4, NOTE_D5, NOTE_F5, END
 };
 
 int scoreDurations[] = {
-  8, 8,
+  // 8, 8,
   4,4,4,4, 8, END
 };
 int gameStartMusic[] = {
@@ -128,7 +134,7 @@ int speed=70;  //higher value, slower notes
 ////////////////////////////////////////////////////
 
 void setup() {
-  pinMode(PIN, OUTPUT);
+  //pinMode(PIN, OUTPUT);
   while (!Serial);
     Serial.begin(115200);
   delay(1500);
@@ -150,13 +156,14 @@ void setup() {
   // initialize the LED pin as an output:
   // pinMode(ledPin, OUTPUT);
   // initialize the pushbutton pin as an input:
-  // pinMode(buttonPin, INPUT);
+  //pinMode(buttonPin, INPUT);
 
   // gamestate and setup
   state = 1;
+  sequence_counter = 0;
   currentColor = generateColor();
-  team1 = 0;
-  team2 = 0;
+  team1 = 3;
+  team2 = 3;
   playmusic(gameStartMusic, gameStartDurations);
   // playmusic(scoreMusic, scoreDurations);
   // playmusic(gameOverMusic, gameOverDurations);
@@ -169,7 +176,7 @@ void loop() {
   // digitalWrite(ledPin, HIGH);
   
   // read the state of the reed switch:
-  // buttonState = digitalRead(buttonPin);
+  //buttonState = digitalRead(buttonPin);
 
   // state = 0, game setup
   // state = 1, listening for input
@@ -177,17 +184,17 @@ void loop() {
   // state = 3, game over
   
   // game setup
-  if (state == 0) {
-    if (buttonState == HIGH){
-      delay(500);
-      state = 1;
-      //play starting game music
-      playmusic(gameStartMusic, gameStartDurations);
-    }
-  }
+  // if (state == 0) {
+  //   // if (buttonState == LOW){
+  //   //   delay(500);
+  //   //   state = 1;
+  //   //   //play starting game music
+  //   //   playmusic(gameStartMusic, gameStartDurations);
+  //   // }
+  // }
 
   // listening for input
-  else if (state == 1) {
+  if (state == 1) {
     // Serial.println("state 1");
     //Read the data if available in buffer
     if (radio.available()) {
@@ -202,8 +209,8 @@ void loop() {
        senderTeam = (senderTeam < 4) ? 1: 2;
 
       // numbering system for 0 - 7, untested
-//      senderColor = atoi(text) % 4;
-//      senderTeam = (atoi(text) < 4) ? 1: 2;
+      //  senderColor = atoi(text) % 4;
+      //  senderTeam = (atoi(text) < 4) ? 1: 2;
       
       
       Serial.print("Team: ");
@@ -220,11 +227,11 @@ void loop() {
       }
     }
 
-    if (buttonState == HIGH){
-      Serial.print("ending");
-      resetGame();
-      state = 0;
-    }
+    // if (buttonState ==LOW){
+    //   Serial.print("ending");
+    //   resetGame();
+    //   state = 0;
+    // }
   }
 
   //score update
@@ -232,46 +239,50 @@ void loop() {
     all_off();
     updateScore();
     light_by_score(team1, team2, leds_per_floor);
-    delay(3000);
+    delay(1000);
     if (team1 == 5 || team2 == 5){
-      Serial.println("someone won");
+      //Serial.println("someone won");
       state = 3;
-      playmusic(gameOverMusic, gameOverDurations);
+      //playmusic(gameOverMusic, gameOverDurations);
+      all_off();
       winning_sequence((team1 == 5)? 1: 2);
       all_off();
       //maybe play some music
     } else {
       state = 1;
       //go back to listening if no conditions met
+      sequence_counter++;
       currentColor = generateColor();
     }
-    if (buttonState == HIGH){
-      resetGame();
-      state = 0;
-      all_off();
-    }
+    // if (buttonState == LOW){
+    //   resetGame();
+    //   state = 0;
+    //   // all_off();
+    // }
   }
 
   //game end
-  else if (state == 3) {
-    if (buttonState == HIGH){
-      all_off();
-      resetGame();
-      state = 0;
-    }
-  }
+  // else if (state == 3) {
+  //   if (buttonState == LOW){
+  //     all_off();
+  //     resetGame();
+  //     state = 0;
+  //   }
+  // }
 
 }
 
 int generateColor() {
-  srand(time(0));
-  int temp = rand()%4;
+  // srand(time(0));
+  // int temp = rand()%4;
   //insert LED logic for tower
-  sprintf(print_statement, "tower lights up %s", colorArray[0]);
+  int temp = fake_sequence[sequence_counter];
+  //sequence_counter+=1;
+  sprintf(print_statement, "tower lights up %s", colorArray[temp]);
   light_by_color(temp);
   Serial.println(print_statement);
-  return 0;
-  //return temp;
+  //return 0;
+  return temp;
 }
 
 void updateScore() {
@@ -288,35 +299,26 @@ void updateScore() {
   Serial.println(print_statement);
 }
 
-void resetGame() {
-  Serial.println("resetting game");
-  team1 = 0;
-  team2 = 0;
-  //reset all LEDs
-  playmusic(gameOverMusic, gameOverDurations);
-  delay(500);
-}
+// void resetGame() {
+//   Serial.println("resetting game");
+//   team1 = 0;
+//   team2 = 0;
+//   //reset all LEDs
+//   // playmusic(gameOverMusic, gameOverDurations);
+//   delay(500);
+// }
 
 void playmusic(int * notes, int * durations){
   for (int thisNote = 0; notes[thisNote]!=-1; thisNote++) {
     int noteDuration = speed*durations[thisNote];
     tone(3, notes[thisNote],noteDuration*.95);
-    Serial.println(notes[thisNote]);
+    //Serial.println(notes[thisNote]);
     delay(noteDuration);
     noTone(3);
   }
 }
 
 void light_by_score(int score_1, int score_2, int per_floor){
-  /* Lights up the tower one floor at a time to show a visual representation of a team's score
-      Parameters:
-        score_1 (int): the score of team 1
-        score_2 (int): the score of team 2
-        per_floor (int): the number of leds per floor in the tower, we don't light in between floors
-      Return:
-        nothing
-  */
-
   for (int i=0;i<5;i++){
     for(int j=levels[i];j<levels[i] + per_floor; j++){
       // light level for team 1 if score high enough
@@ -329,7 +331,7 @@ void light_by_score(int score_1, int score_2, int per_floor){
       }
     }
     FastLED.show();
-    delay(500); // lights floors one at a time, for visual appeal?
+    delay(200); // lights floors one at a time, for visual appeal?
   }
 }
 
@@ -339,18 +341,18 @@ void light_by_color(int color){
     case 0: // tower is red
       hue = 96;
       break;
-    case 1: // tower is green
-      hue = 0;
-      break;
+    // case 1: // tower is green
+    //   hue = 0;
+    //   break;
     case 2: // tower is blue
       hue = 160;
       break;
-    case 3: // tower is yellow
-      hue = 80;
-      break;
-    default:
-      hue = 192; // purple idk
-      break;
+    // case 3: // tower is yellow
+    //   hue = 80;
+    //   break;
+    // default:
+    //   hue = 192; // purple idk
+    //   break;
   }
 
   for (int i = 0; i<NUM_LEDS; i++){
@@ -366,22 +368,22 @@ void correct_color(int team, int color){
     case 0: // tower is red
       hue = 96;
       break;
-    case 1: // tower is green
-      hue = 0;
-      break;
+    // case 1: // tower is green
+    //   hue = 0;
+    //   break;
     case 2: // tower is blue
       hue = 160;
       break;
-    case 3: // tower is yellow
-      hue = 80;
-      break;
-    default:
-      hue = 192; // purple idk
-      break;
+    // case 3: // tower is yellow
+    //   hue = 80;
+    //   break;
+    // default:
+    //   hue = 192; // purple idk
+    //   break;
   }
 
   if (team == 1){
-    for (int x = 0; x < 10; x++){
+    for (int x = 0; x < 5; x++){
       for (int i = 0; i < NUM_LEDS; i++){
         leds_1[i] = CHSV(hue, 255, 255);
       }
@@ -392,7 +394,7 @@ void correct_color(int team, int color){
     }
   }
   else if (team == 2){
-    for (int x = 0; x < 10; x++){
+    for (int x = 0; x < 5; x++){
       for (int i = 0; i < NUM_LEDS; i++){
         leds_2[i] = CHSV(hue, 255, 255);
       }
@@ -414,8 +416,8 @@ void all_off(){
 }
 
 void winning_sequence(int team){
-  for (int x=0;x<600;x++){
-    Serial.println(x);
+  for (int x=0;x<800;x++){
+    // Serial.println(x);
     //uint8_t thisHue = beatsin8(30, 0, 255);
     uint8_t thisHue = beat8(100, 255);
     if (team == 1){
